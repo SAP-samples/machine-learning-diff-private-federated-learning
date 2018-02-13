@@ -43,7 +43,6 @@ NUM_CLASSES = 10
 IMAGE_SIZE = 28
 IMAGE_PIXELS = IMAGE_SIZE * IMAGE_SIZE
 
-
 def init_weights(size):
     # we truncate the normal distribution at two times the standard deviation (which is 2)
     # to account for a smaller variance (but the same mean), we multiply the resulting matrix with he desired std
@@ -77,16 +76,19 @@ def inference_no_bias(images, hidden1, hidden2):
   with tf.name_scope('hidden1'):
 
     weights = tf.Variable(init_weights([IMAGE_PIXELS, hidden1]), name='weights', dtype=tf.float32)
+
     hidden1 = tf.nn.relu(tf.matmul(images, weights))
 
   with tf.name_scope('hidden2'):
 
     weights = tf.Variable(init_weights([hidden1, hidden2]),name='weights',dtype=tf.float32)
+
     hidden2 = tf.nn.relu(tf.matmul(hidden1, weights))
 
   with tf.name_scope('out'):
 
     weights = tf.Variable(init_weights([hidden2, NUM_CLASSES]), name='weights',dtype=tf.float32)
+
     logits = tf.matmul(hidden2, weights)
 
   return logits
@@ -134,7 +136,6 @@ def training(loss, learning_rate):
   # (and also increment the global step counter) as a single training step.
   train_op = optimizer.minimize(loss, global_step=global_step)
   return train_op
-
 
 def evaluation(logits, labels):
   """Evaluate the quality of the logits at predicting the label.
@@ -255,4 +256,3 @@ def mnist_fully_connected_model(batch_size, hidden1, hidden2):
     train_op = training(Loss, learning_rate)
 
     return train_op, eval_correct, Loss
-

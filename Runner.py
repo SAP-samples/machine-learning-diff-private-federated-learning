@@ -12,6 +12,7 @@ hidden2 = 100
 Batches = 10
 save_dir = os.getcwd()
 
+
 PrivacyAgent = []
 
 for j in range(10):
@@ -37,6 +38,7 @@ for i in range(10):
     Acc_temp = []
     Del_temp = []
     for j in range(10):
+
         PrivAgentName = 'Priv_Agent'+str(i)
         with tf.Graph().as_default():
 
@@ -48,6 +50,7 @@ for i in range(10):
                                                                PrivacyAgent[i], DATA, save_dir=save_dir+'/CNN', B=60)
             Acc_temp.append(Accuracy_accountant)
             Del_temp.append(Delta_accountant)
+
 
 Acc_temp = np.asarray(Acc_temp)
 Acc_temp = np.mean(Acc_temp,0)
