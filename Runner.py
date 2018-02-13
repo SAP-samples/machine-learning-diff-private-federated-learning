@@ -1,41 +1,22 @@
-from Redone import run_training, flag
+import mnist_inference as mnist
+from Redone import run_differentially_private_federated_averaging, flag
 import numpy as np
+from Helper_Functions import Data, PrivAgent
+import os
+import tensorflow as tf
 
-class PrivAgent:
-    def __init__(self, N):
-        self.N = N
-        if N == 100:
-            self.m = [20,30,40,45,45,45,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50]
-            self.Sigma = [1]*24
-            self.bound = 0.001
-        if N == 1000:
-            self.m = [20,30,40,45,45,45,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50]
-            self.Sigma = [1]*24
-            self.bound = 0.00001
-        if N == 10000:
-            self.m = [200, 200, 200, 200]
-            self.Sigma = [1]*24
-            self.bound = 0.000001
-        if(N != 100 and N != 1000 and
-          N != 10000 ):
-            print('!!!!!!! YOU CAN ONLY USE THE PRIVACY AGENT FOR N = 100, 1000 or 10000 !!!!!!!')
 
-    def get_m(self, r):
-        return self.m[r]
+N = 100
+hidden1 = 600
+hidden2 = 100
+Batches = 10
+save_dir = os.getcwd()
 
-    def get_Sigma(self, r):
-        return self.Sigma[r]
-
-    def get_bound(self):
-        return self.bound
-
-FLAGS = flag()
-FLAGS.N = 100
 
 PrivacyAgent = []
 
 for j in range(10):
-    PrivacyAgent.append(PrivAgent(FLAGS.N))
+    PrivacyAgent.append(PrivAgent(100, '_'+str(j)))
 
 PrivacyAgent[0].m = [20]*100
 PrivacyAgent[1].m = [25]*100
@@ -51,14 +32,26 @@ PrivacyAgent[9].m = [20,20,30,45,45,45,50,50,50,50,50,50,50,50,50,50,50,50,50,50
 Acc = []
 Del = []
 
+DATA = Data(save_dir, N)
+
 for i in range(10):
     Acc_temp = []
     Del_temp = []
     for j in range(10):
-        FLAGS.PrivAgentName = 'Priv_Agent'+str(i)
-        Accuracy_accountant, Delta_accountant, model = run_training(PrivacyAgent[i], FLAGS=FLAGS)
-        Acc_temp.append(Accuracy_accountant)
-        Del_temp.append(Delta_accountant)
+
+        PrivAgentName = 'Priv_Agent'+str(i)
+        with tf.Graph().as_default():
+
+            # A train operation, an evaluating operation, allocating a loss.
+            train_op, eval_correct, loss = mnist.mnist_cnn_model(Batches)
+
+            Accuracy_accountant, Delta_accountant, model = \
+                run_differentially_private_federated_averaging(loss, train_op, eval_correct,
+                                                               PrivacyAgent[i], DATA, save_dir=save_dir+'/CNN', B=60)
+            Acc_temp.append(Accuracy_accountant)
+            Del_temp.append(Delta_accountant)
+
+
 Acc_temp = np.asarray(Acc_temp)
 Acc_temp = np.mean(Acc_temp,0)
 Acc.append(Acc_temp)
