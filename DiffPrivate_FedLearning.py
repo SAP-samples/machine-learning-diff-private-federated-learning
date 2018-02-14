@@ -31,8 +31,9 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
 
         train_op, eval_correct, loss = Some_function_that_builds_the_TF_graph()
 
-        accuracy_accountant, delta_accountant, model = run_differentially_private_federated_averaging(loss, train_op,
-                                                                                                    eval_correct, data)
+        Accuracy_accountant, Delta_accountant, model = \
+            run_differentially_private_federated_averaging(loss, train_op, eval_correct,
+                                                           DATA, data_placeholder, labels_placeholder)
 
     --------------------------------------------------------------------------------------------------------------------
     The graph that train_op, loss and eval_op belong to should have a global_step variable.
