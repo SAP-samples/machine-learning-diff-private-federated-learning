@@ -23,7 +23,7 @@ with tf.Graph().as_default():
     # Building the model that we would like to train in differentially private federated fashion.
     # We will need the tensorflow training operation for that model, its loss and an evaluation method:
 
-    train_op, eval_correct, loss = mnist.mnist_fully_connected_model(Batches, hidden1, hidden2)
+    train_op, eval_correct, loss, data_placeholder, labels_placeholder = mnist.mnist_fully_connected_model(Batches, hidden1, hidden2)
 
     Accuracy_accountant, Delta_accountant, model = \
-        run_differentially_private_federated_averaging(loss, train_op, eval_correct, DATA)
+        run_differentially_private_federated_averaging(loss, train_op, eval_correct, DATA, data_placeholder, labels_placeholder)

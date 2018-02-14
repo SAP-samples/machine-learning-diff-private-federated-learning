@@ -222,7 +222,7 @@ def mnist_cnn_model(batch_size):
         loss=loss,
         global_step=global_step)
 
-    return train_op, eval_correct, loss
+    return train_op, eval_correct, loss, data_placeholder, labels_placeholder
 
 
 def mnist_fully_connected_model(batch_size, hidden1, hidden2):
@@ -252,4 +252,4 @@ def mnist_fully_connected_model(batch_size, hidden1, hidden2):
     #              learning rate specified.
     train_op = training(Loss, learning_rate)
 
-    return train_op, eval_correct, Loss
+    return train_op, eval_correct, Loss, data_placeholder, labels_placeholder
