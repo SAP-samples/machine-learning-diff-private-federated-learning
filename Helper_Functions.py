@@ -134,7 +134,7 @@ class WeightsAccountant:
 
         t = Acc.accumulate_privacy_spending(0, self.Sigma, self.m)
         delta = 1
-        if FLAGS.Record_privacy == True:
+        if FLAGS.record_privacy == True:
             if FLAGS.relearn == False:
                 # I.e. we never learned a complete model before and have therefore never computed all deltas.
                 for j in range(len(self.keys)):
@@ -152,15 +152,15 @@ def create_save_dir(FLAGS):
     :return: Returns a path that is used to store training progress; the path also identifies the chosen setup uniquely.
     '''
     raw_directory = FLAGS.save_dir + '/'
-    if FLAGS.GM: gm_str = 'Dp/'
+    if FLAGS.gm: gm_str = 'Dp/'
     else: gm_str = 'non_Dp/'
-    if FLAGS.PrivAgent:
-        model = gm_str + 'N_' + str(FLAGS.N) + '/Epochs_' + str(
-            int(FLAGS.E)) + '_Batches_' + str(int(FLAGS.B))
+    if FLAGS.priv_agent:
+        model = gm_str + 'N_' + str(FLAGS.n) + '/Epochs_' + str(
+            int(FLAGS.e)) + '_Batches_' + str(int(FLAGS.b))
         return raw_directory + str(model) + '/' + FLAGS.PrivAgentName
     else:
-        model = gm_str + 'N_' + str(FLAGS.N) + '/Sigma_' + str(FLAGS.Sigma) + '_C_'+str(FLAGS.m)+'/Epochs_' + str(
-            int(FLAGS.E)) + '_Batches_' + str(int(FLAGS.B))
+        model = gm_str + 'N_' + str(FLAGS.n) + '/Sigma_' + str(FLAGS.Sigma) + '_C_'+str(FLAGS.m)+'/Epochs_' + str(
+            int(FLAGS.e)) + '_Batches_' + str(int(FLAGS.b))
         return raw_directory + str(model)
 
 
@@ -185,7 +185,7 @@ def load_from_directory_or_initialize(directory, FLAGS):
     Delta_accountant = [0]
     model = []
     real_round = 0
-    Acc = GaussianMomentsAccountant(FLAGS.N)
+    Acc = GaussianMomentsAccountant(FLAGS.n)
     FLAGS.loaded = False
     FLAGS.relearn = False
     Computed_Deltas = []
@@ -277,9 +277,9 @@ def save_progress(save_dir, model, Delta_accountant, Accuracy_accountant, Privac
 
         with open(save_dir + '/specs.csv', 'wb') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
-            if FLAGS.PrivAgent == True:
+            if FLAGS.priv_agent == True:
                 writer.writerow([0]+[PrivacyAgent.get_m(r) for r in range(len(Delta_accountant)-1)])
-            if FLAGS.PrivAgent == False:
+            if FLAGS.priv_agent == False:
                 writer.writerow([0]+[FLAGS.m]*(len(Delta_accountant)-1))
             writer.writerow(Delta_accountant)
             writer.writerow(Accuracy_accountant)
@@ -326,17 +326,17 @@ def bring_Accountant_up_to_date(Acc, sess, rounds, PrivAgent, FLAGS):
     :param sess: A tensorflow session
     :param rounds: the number of rounds that the privacy accountant shall iterate
     :param PrivAgent: A Privacy_agent that has functions: PrivAgent.get_Sigma(round) and PrivAgent.get_m(round)
-    :param FLAGS: FLAGS.PrivAgent specifies whether to use a PrivAgent or not.
+    :param FLAGS: priv_agent specifies whether to use a PrivAgent or not.
     :return:
     '''
     print('Bringing the accountant up to date....')
 
     for r in range(rounds):
-        if FLAGS.PrivAgent:
+        if FLAGS.priv_agent:
             Sigma = PrivAgent.get_Sigma(r)
             m = PrivAgent.get_m(r)
         else:
-            Sigma = FLAGS.Sigma
+            Sigma = FLAGS.sigma
             m = FLAGS.m
         print('Completed '+str(r+1)+' out of '+str(rounds)+' rounds')
         t = Acc.accumulate_privacy_spending(0, Sigma, m)
@@ -358,15 +358,15 @@ def print_new_comm_round(real_round):
     print('--------------------------------------------------------------------------------------')
 
 def check_validaity_of_FLAGS(FLAGS):
-    FLAGS.PrivAgent = True
+    FLAGS.priv_agent = True
     if not FLAGS.m == 0:
-        if FLAGS.Sigma == 0:
+        if FLAGS.sigma == 0:
             print('\n \n -------- If m is specified the Privacy Agent is not used, then Sigma has to be specified too. --------\n \n')
             raise NotImplementedError
-    if not FLAGS.Sigma == 0:
+    if not FLAGS.sigma == 0:
         if FLAGS.m ==0:
             print('\n \n-------- If Sigma is specified the Privacy Agent is not used, then m has to be specified too. -------- \n \n')
             raise NotImplementedError
-    if not FLAGS.Sigma == 0 and not FLAGS.m == 0:
-        FLAGS.PrivAgent = False
+    if not FLAGS.sigma == 0 and not FLAGS.m == 0:
+        FLAGS.priv_agent = False
     return FLAGS
