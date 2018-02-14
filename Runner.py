@@ -43,10 +43,11 @@ for i in range(10):
         with tf.Graph().as_default():
 
             # A train operation, an evaluating operation, allocating a loss.
-            train_op, eval_correct, loss = mnist.mnist_cnn_model(Batches)
+            train_op, eval_correct, loss, data_placeholder, labels_placeholder = mnist.mnist_cnn_model(Batches)
 
             Accuracy_accountant, Delta_accountant, model = \
-                run_differentially_private_federated_averaging(loss, train_op, eval_correct,
+                run_differentially_private_federated_averaging(loss, train_op, eval_correct, data_placeholder,
+                                                               labels_placeholder,
                                                                PrivacyAgent[i], DATA, save_dir=save_dir+'/CNN', B=60)
             Acc_temp.append(Accuracy_accountant)
             Del_temp.append(Delta_accountant)

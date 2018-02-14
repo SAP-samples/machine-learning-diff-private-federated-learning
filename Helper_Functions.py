@@ -16,7 +16,7 @@ class PrivAgent:
         self.N = N
         self.Name = Name
         if N == 100:
-            self.m = [20]*100
+            self.m = [30]*100
             self.Sigma = [1]*24
             self.bound = 0.001
         if N == 1000:
@@ -167,9 +167,11 @@ def create_save_dir(FLAGS):
 class Data:
     def __init__(self, save_dir, n):
         raw_directory = save_dir + '/DATA/'
-        self.data_set = pickle.load(open(raw_directory + 'Sorted_MNIST.pkl', 'rb'))
+        self.data_set = pickle.load(open(raw_directory + 'sorted_x_train_MNIST.pkl', 'rb'))
+        self.label_set = pickle.load(open(raw_directory + 'sorted_y_train_MNIST.pkl', 'rb'))
+        self.data_set_vali = pickle.load(open(raw_directory + 'x_vali_MNIST.pkl', 'rb'))
+        self.label_set_vali = pickle.load(open(raw_directory + 'y_vali_MNIST.pkl', 'rb'))
         self.client_set = pickle.load(open(raw_directory + 'clients/' + str(n) + '_clients.pkl', 'rb'))
-        self.validation_set = pickle.load(open(raw_directory + 'test_set.pkl', 'rb'))
 
 def load_from_directory_or_initialize(directory, FLAGS):
     '''

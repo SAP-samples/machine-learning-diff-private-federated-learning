@@ -15,10 +15,10 @@ from Helper_Functions import Vname_to_FeedPname, Vname_to_Pname, check_validaity
 from six.moves import xrange
 
 
-def run_differentially_private_federated_averaging(loss, train_op, eval_correct, data, privacy_agent=None,
-                                                   n=100, b=10, e=4, record_privacy=True, m=0, sigma=0, eps=8,
-                                                   save_dir=None, log_dir=None,
-                                                   max_comm_rounds=3000, gm=True, saver_func=create_save_dir):
+def run_differentially_private_federated_averaging(loss, train_op, eval_correct, data, data_placeholder, label_placeholder,
+                                                   privacy_agent=None, b=10, e=4, record_privacy=True, m=0, sigma=0,
+                                                   eps=8, save_dir=None, log_dir=None, max_comm_rounds=3000, gm=True,
+                                                   saver_func=create_save_dir):
 
     """
     This function will simulate a federated learning setting and enable differential privacy tracking. It will detect
@@ -37,26 +37,38 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
     --------------------------------------------------------------------------------------------------------------------
     The graph that train_op, loss and eval_op belong to should have a global_step variable.
 
-    :param loss:            TENSORFLOW node that computes the current loss
-    :param train_op:        TENSORFLOW Training_op
-    :param eval_correct:    TENSORFLOW node that evaluates the number of correct predictions
-    :param data: A class    Instance with attributes .data_set, .client_set and .validation_set. data_set is a list of
-                            data points, client_set is a list of indices, mapping data points to clients.
-    :param privacy_agent:   A class instance that has callabels .get_m(r) .get_Sigma(r) .get_bound(), where r is the
-                            communication round.
-    :param n: Number of     Participating clients
-    :param b:               Batchsize
-    :param e:               Epochs to run on each client
-    :param record_privacy:  Whether to record the privacy or not
-    :param m:               If specified, a privacyAgent is not used, instead the parameter is kept constant
-    :param sigma:           If specified, a privacyAgent is not used, instead the parameter is kept constant
-    :param eps:             The epsilon for epsilon-delta privacy
-    :param save_dir:        Directory to store the process
-    :param log_dir:         Directory to store the graph
-    :param max_comm_rounds: The maximum number of allowed communication rounds
-    :param gm:              Whether to use a Gaussian Mechanism or not.
-    :param saver_func:      A function that specifies where and how to save progress: Note that the usual tensorflow
-                            tracking will not work
+    :param loss:                TENSORFLOW node that computes the current loss
+    :param train_op:            TENSORFLOW Training_op
+    :param eval_correct:        TENSORFLOW node that evaluates the number of correct predictions
+    :param data:                A class instance with attributes:
+                                .data_set       : The training data stored in a list or numpy array.
+                                .label_set      : The training labels stored in a list or numpy array.
+                                                  The indices should correspond to .data_set. This means a single index
+                                                  corresponds to a data(x)-label(y) pair used for training:
+                                                  (x_i, y_i) = (data.data_set(i),data.label_set(i))
+                                .client_set     : A nested list or numpy array. len(data.client_set) is the total
+                                                  number of clients. for any j, data.client_set[j] is a list (or array)
+                                                  holding indices. these indices specify the data points that client j
+                                                  holds.
+                                                  i.e. if i \in data.client_set[j], then client j owns (x_i, y_i)
+                                .vali_data_set  : The validation data stored in a list or numpy array.
+                                .vali_label_set : The validation labels stored in a list or numpy array.
+    :param data_placeholder:    The placeholder from the tensorflow graph that is used to feed the model with data
+    :param label_placeholder:   The placeholder from the tensorflow graph that is used to feed the model with labels
+    :param privacy_agent:       A class instance that has callabels .get_m(r) .get_Sigma(r) .get_bound(), where r is the
+                                communication round.
+    :param b:                   Batchsize
+    :param e:                   Epochs to run on each client
+    :param record_privacy:      Whether to record the privacy or not
+    :param m:                   If specified, a privacyAgent is not used, instead the parameter is kept constant
+    :param sigma:               If specified, a privacyAgent is not used, instead the parameter is kept constant
+    :param eps:                 The epsilon for epsilon-delta privacy
+    :param save_dir:            Directory to store the process
+    :param log_dir:             Directory to store the graph
+    :param max_comm_rounds:     The maximum number of allowed communication rounds
+    :param gm:                  Whether to use a Gaussian Mechanism or not.
+    :param saver_func:          A function that specifies where and how to save progress: Note that the usual tensorflow
+                                tracking will not work
 
     :return:
 
@@ -64,10 +76,10 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
 
     # If no privacy agent was specified, the default privacy agent is used.
     if not privacy_agent:
-        privacy_agent = PrivAgent(n, 'default_agent')
+        privacy_agent = PrivAgent(len(data.client_set), 'default_agent')
 
     # A Flags instance is created that will fuse all specified parameters and default those that are not specified.
-    FLAGS = Flag(n, b, e, record_privacy, m, sigma, eps, save_dir, log_dir, max_comm_rounds, gm, privacy_agent)
+    FLAGS = Flag(len(data.client_set), b, e, record_privacy, m, sigma, eps, save_dir, log_dir, max_comm_rounds, gm, privacy_agent)
 
     # Check whether the specified parameters make sense.
     FLAGS = check_validaity_of_FLAGS(FLAGS)
@@ -148,6 +160,9 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
 
     # This is where the actual communication rounds start:
 
+    data_set_asarray = np.asarray(data.data_set)
+    label_set_asarray = np.asarray(data.label_set)
+
     for r in xrange(FLAGS.max_comm_rounds):
 
         # First, we check whether we are loading a model, if so, we have to skip the first allocation, as it took place
@@ -156,15 +171,15 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
             # Setting the trainable Variables in the graph to the values stored in feed_dict 'model'
             sess.run(assignments, feed_dict=model)
 
-            # create a feeddict holding the validation set.
+            # create a feed-dict holding the validation set.
 
-            feed_dict = {'images_placeholder:0': data.validation_set[0],
-                         'labels_placeholder:0': data.validation_set[1]}
+            feed_dict = {str(data_placeholder.name): data.data_set_vali,
+                         str(label_placeholder.name): data.label_set_vali}
 
             # compute the loss on the validation set.
             global_loss = sess.run(loss, feed_dict=feed_dict)
             count = sess.run(eval_correct, feed_dict=feed_dict)
-            accuracy = float(count) / float(len(data.validation_set[0]))
+            accuracy = float(count) / float(len(data.label_set_vali))
             accuracy_accountant.append(accuracy)
 
             print_loss_and_accuracy(global_loss, accuracy)
@@ -198,7 +213,13 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
         print('Clients participating: ' + str(m))
 
         # Randomly choose a total of m (out of n) client-indices that participate in this round
+        # randomly permute a range-list of length n: [1,2,3...n] --> [5,2,7..3]
         perm = np.random.permutation(FLAGS.n)
+
+        # Use the first m entries of the permuted list to decide which clients (and their sets) will participate in
+        # this round. participating_clients is therefore a nested list of length m. participating_clients[i] should be
+        # a list of integers that specify which data points are held by client i. Note that this nested list is a
+        # mapping only. the actual data is stored in data.data_set.
         s = perm[0:m].tolist()
         participating_clients = [data.client_set[k] for k in s]
 
@@ -206,12 +227,12 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
         for c in range(m):
 
             # Assign the global model and set the global step. This is obsolete when the first client trains,
-            # but as soon as the next clients trains, all progress allocated before, has to be discarded and the
+            # but as soon as the next client trains, all progress allocated before, has to be discarded and the
             # trainable variables reset to the values specified in 'model'
             sess.run(assignments + [set_global_step], feed_dict=model)
 
-            # allocate a list, holding the training data associated to client c and split into batches.
-            data_ind = np.split(participating_clients[c], FLAGS.b, 0)
+            # allocate a list, holding data indices associated to client c and split into batches.
+            data_ind = np.split(np.asarray(participating_clients[c]), FLAGS.b, 0)
 
             # e = Epoch
             for e in xrange(int(FLAGS.e)):
@@ -219,10 +240,10 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
                     real_step = sess.run(increase_global_step)
                     batch_ind = data_ind[step]
 
-                    # Fill a feed dictionary with the actual set of images and labels
+                    # Fill a feed dictionary with the actual set of data and labels
                     # for this particular training step.
-                    feed_dict = {'images_placeholder:0': data.data_set[[int(j) for j in batch_ind]][:, 1:],
-                                 'labels_placeholder:0': data.data_set[[int(j) for j in batch_ind]][:, 0]}
+                    feed_dict = {str(data_placeholder.name): (data_set_asarray)[[int(j) for j in batch_ind]],
+                                 str(label_placeholder.name): (label_set_asarray)[[int(j) for j in batch_ind]]}
 
                     # Run one optimization step.
                     _ = sess.run([train_op], feed_dict=feed_dict)
