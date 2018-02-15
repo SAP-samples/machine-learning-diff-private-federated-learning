@@ -15,9 +15,10 @@ from Helper_Functions import Vname_to_FeedPname, Vname_to_Pname, check_validaity
 from six.moves import xrange
 
 
-def run_differentially_private_federated_averaging(loss, train_op, eval_correct, data, data_placeholder, label_placeholder,
-                                                   privacy_agent=None, b=10, e=4, record_privacy=True, m=0, sigma=0,
-                                                   eps=8, save_dir=None, log_dir=None, max_comm_rounds=3000, gm=True,
+def run_differentially_private_federated_averaging(loss, train_op, eval_correct, data, data_placeholder,
+                                                   label_placeholder, privacy_agent=None, b=10, e=4,
+                                                   record_privacy=True, m=0, sigma=0, eps=8, save_dir=None,
+                                                   log_dir=None, max_comm_rounds=3000, gm=True,
                                                    saver_func=create_save_dir):
 
     """
@@ -80,7 +81,8 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
         privacy_agent = PrivAgent(len(data.client_set), 'default_agent')
 
     # A Flags instance is created that will fuse all specified parameters and default those that are not specified.
-    FLAGS = Flag(len(data.client_set), b, e, record_privacy, m, sigma, eps, save_dir, log_dir, max_comm_rounds, gm, privacy_agent)
+    FLAGS = Flag(len(data.client_set), b, e, record_privacy, m, sigma, eps, save_dir, log_dir, max_comm_rounds, gm,
+                 privacy_agent)
 
     # Check whether the specified parameters make sense.
     FLAGS = check_validaity_of_FLAGS(FLAGS)
@@ -119,8 +121,8 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
     model, accuracy_accountant, delta_accountant, acc, real_round, FLAGS, computed_deltas = \
         load_from_directory_or_initialize(save_dir, FLAGS)
 
-    m = FLAGS.m
-    sigma = FLAGS.sigma
+    m = int(FLAGS.m)
+    sigma = float(FLAGS.sigma)
     # - m : amount of clients participating in a round
     # - sigma : variable for the Gaussian Mechanism.
     # Both will only be used if no Privacy_Agent is deployed.
@@ -243,8 +245,8 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
 
                     # Fill a feed dictionary with the actual set of data and labels
                     # for this particular training step.
-                    feed_dict = {str(data_placeholder.name): (data_set_asarray)[[int(j) for j in batch_ind]],
-                                 str(label_placeholder.name): (label_set_asarray)[[int(j) for j in batch_ind]]}
+                    feed_dict = {str(data_placeholder.name): data_set_asarray[[int(j) for j in batch_ind]],
+                                 str(label_placeholder.name): label_set_asarray[[int(j) for j in batch_ind]]}
 
                     # Run one optimization step.
                     _ = sess.run([train_op], feed_dict=feed_dict)
