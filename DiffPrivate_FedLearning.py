@@ -2,17 +2,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 import numpy as np
-import argparse
-import sys
-import os.path
 import tensorflow as tf
 import math
-import os
-import mnist_inference
 from Helper_Functions import Vname_to_FeedPname, Vname_to_Pname, check_validaity_of_FLAGS, create_save_dir, \
-    global_step_creator, Data, load_from_directory_or_initialize, bring_Accountant_up_to_date, save_progress, \
-    WeightsAccountant, print_loss_and_accuracy, print_new_comm_round, PrivAgent
-from six.moves import xrange
+    global_step_creator, load_from_directory_or_initialize, bring_Accountant_up_to_date, save_progress, \
+    WeightsAccountant, print_loss_and_accuracy, print_new_comm_round, PrivAgent, Flag
 
 
 def run_differentially_private_federated_averaging(loss, train_op, eval_correct, data, data_placeholder,
@@ -87,7 +81,7 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
     # Check whether the specified parameters make sense.
     FLAGS = check_validaity_of_FLAGS(FLAGS)
 
-    # At this point, FLAGS.save_dir specifies both; where we save and where we assume the data is stored
+    # At this point, FLAGS.save_dir specifies both; where we save progress and where we assume the data is stored
     save_dir = saver_func(FLAGS)
 
     # This function will retrieve the variable associated to the global step and create nodes that serve to
@@ -163,8 +157,8 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
 
     # This is where the actual communication rounds start:
 
-    data_set_asarray = np.asarray(data.data_set)
-    label_set_asarray = np.asarray(data.label_set)
+    data_set_asarray = np.asarray(data.sorted_x_train)
+    label_set_asarray = np.asarray(data.sorted_y_train)
 
     for r in xrange(FLAGS.max_comm_rounds):
 
@@ -176,13 +170,13 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
 
             # create a feed-dict holding the validation set.
 
-            feed_dict = {str(data_placeholder.name): data.data_set_vali,
-                         str(label_placeholder.name): data.label_set_vali}
+            feed_dict = {str(data_placeholder.name): np.asarray(data.x_vali),
+                         str(label_placeholder.name): np.asarray(data.y_vali)}
 
             # compute the loss on the validation set.
             global_loss = sess.run(loss, feed_dict=feed_dict)
             count = sess.run(eval_correct, feed_dict=feed_dict)
-            accuracy = float(count) / float(len(data.label_set_vali))
+            accuracy = float(count) / float(len(data.y_vali))
             accuracy_accountant.append(accuracy)
 
             print_loss_and_accuracy(global_loss, accuracy)
@@ -240,11 +234,13 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
             # e = Epoch
             for e in xrange(int(FLAGS.e)):
                 for step in xrange(len(data_ind)):
+                    # increase the global_step count (it's used for the learning rate.)
                     real_step = sess.run(increase_global_step)
+                    # batch_ind holds the indices of the current batch
                     batch_ind = data_ind[step]
 
-                    # Fill a feed dictionary with the actual set of data and labels
-                    # for this particular training step.
+                    # Fill a feed dictionary with the actual set of data and labels using the data and labels associated
+                    # to the indices stored in batch_ind:
                     feed_dict = {str(data_placeholder.name): data_set_asarray[[int(j) for j in batch_ind]],
                                  str(label_placeholder.name): label_set_asarray[[int(j) for j in batch_ind]]}
 
@@ -258,7 +254,7 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
                 # all client updates throughout a communication round.
                 weights_accountant = WeightsAccountant(sess, model, sigma, real_round)
             else:
-                # Allocate the client update
+                # Allocate the client update, if this is not the first client in a communication round
                 weights_accountant.allocate(sess)
 
         # End of a communication round
@@ -266,10 +262,12 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
 
         print('......Communication round %s completed' % str(real_round))
         # Compute a new model according to the updates and the Gaussian mechanism specifications from FLAGS
-        # Also compute delta; the probability of Epsilon-Differential Privacy being broken by allocating the model.
+        # Also, if computed_deltas is an empty list, compute delta; the probability of Epsilon-Differential Privacy
+        # being broken by allocating the model. If computed_deltas is passed, instead of computing delta, the
+        # pre-computed vaue is used.
         model, delta = weights_accountant.Update_via_GaussianMechanism(sess, acc, FLAGS, computed_deltas)
 
-        # Save delta.
+        # append delta to a list.
         delta_accountant.append(delta)
 
         # Set the global_step to the current step of the last client, such that the next clients can feed it into
@@ -280,105 +278,3 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
         print(' - Epsilon-Delta Privacy:' + str([FLAGS.eps, delta]))
 
     return [], [], []
-
-
-def main(_):
-    data = Data(FLAGS.save_dir, FLAGS.n)
-    train_op, eval_correct, loss = mnist_inference.mnist_fully_connected_model()
-    run_differentially_private_federated_averaging(loss, train_op, eval_correct, data)
-
-
-class Flag:
-    def __init__(self, n, b, e, record_privacy, m, sigma, eps, save_dir, log_dir, max_comm_rounds, gm, PrivAgent):
-        if not save_dir:
-            save_dir = os.getcwd()
-        if not log_dir:
-            log_dir = os.path.join(os.getenv('TEST_TMPDIR', '/tmp'), 'tensorflow/mnist/logs/fully_connected_feed')
-        if tf.gfile.Exists(log_dir):
-            tf.gfile.DeleteRecursively(log_dir)
-        tf.gfile.MakeDirs(log_dir)
-        self.n = n
-        self.sigma = sigma
-        self.eps = eps
-        self.m = m
-        self.b = b
-        self.e = e
-        self.record_privacy = record_privacy
-        self.save_dir = save_dir
-        self.log_dir = log_dir
-        self.max_comm_rounds = max_comm_rounds
-        self.gm = gm
-        self.PrivAgentName = PrivAgent.Name
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--PrivAgentName',
-        type=str,
-        default='default_Priv_Agent',
-        help='Sets the name of the used Privacy agent'
-    )
-    parser.add_argument(
-        '--n',
-        type=int,
-        default=100,
-        help='Total Number of clients participating'
-    )
-    parser.add_argument(
-        '--sigma',
-        type=float,
-        default=0,
-        help='The gm variance parameter; will not affect if Priv_agent is set to True'
-    )
-    parser.add_argument(
-        '--eps',
-        type=float,
-        default=8,
-        help='Epsilon'
-    )
-    parser.add_argument(
-        '--m',
-        type=int,
-        default=0,
-        help='Number of clients participating in a round'
-    )
-    parser.add_argument(
-        '--b',
-        type=float,
-        default=10,
-        help='Batches per client'
-    )
-    parser.add_argument(
-        '--e',
-        type=int,
-        default=4,
-        help='Epochs per client'
-    )
-    parser.add_argument(
-        '--record_privacy',
-        type=bool,
-        default=True,
-        help='Epochs per client'
-    )
-    parser.add_argument(
-        '--save_dir',
-        type=str,
-        default=os.getcwd(),
-        help='Directory.'
-    )
-    parser.add_argument(
-        '--log_dir',
-        type=str,
-        default=os.path.join(os.getenv('TEST_TMPDIR', '/tmp'),
-                             'tensorflow/mnist/logs/fully_connected_feed'),
-        help='Directory to put the log data.'
-    )
-    parser.add_argument(
-        '--max_comm_rounds',
-        type=int,
-        default=3000,
-        help='Maximum number of communication rounds'
-    )
-    FLAGS, unparsed = parser.parse_known_args()
-    tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
