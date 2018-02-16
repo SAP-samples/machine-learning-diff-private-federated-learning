@@ -3,6 +3,15 @@ import numpy as np
 import os
 
 def create_clients(num, dir):
+
+    '''
+    This function creates clients that hold non-iid data. (it actually just creates indices that point to data.
+    but the way these indices are grouped, they create a non-iid client.)
+    :param num: Number of clients
+    :param dir: where to store
+    :return: _
+    '''
+
     num_examples = 50000
     num_classes = 10
     if os.path.exists(dir + '/'+str(num)+'_clients.pkl'):
