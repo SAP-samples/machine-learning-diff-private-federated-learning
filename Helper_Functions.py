@@ -164,15 +164,6 @@ def create_save_dir(FLAGS):
         return raw_directory + str(model)
 
 
-class Data:
-    def __init__(self, save_dir, n):
-        raw_directory = save_dir + '/DATA/'
-        self.data_set = pickle.load(open(raw_directory + 'sorted_x_train_MNIST.pkl', 'rb'))
-        self.label_set = pickle.load(open(raw_directory + 'sorted_y_train_MNIST.pkl', 'rb'))
-        self.data_set_vali = pickle.load(open(raw_directory + 'x_vali_MNIST.pkl', 'rb'))
-        self.label_set_vali = pickle.load(open(raw_directory + 'y_vali_MNIST.pkl', 'rb'))
-        self.client_set = pickle.load(open(raw_directory + 'clients/' + str(n) + '_clients.pkl', 'rb'))
-
 def load_from_directory_or_initialize(directory, FLAGS):
     '''
     This function looks for a model that corresponds to the characteristics specified and loads potential progress.
@@ -372,3 +363,25 @@ def check_validaity_of_FLAGS(FLAGS):
     if not FLAGS.sigma == 0 and not FLAGS.m == 0:
         FLAGS.priv_agent = False
     return FLAGS
+
+class Flag:
+    def __init__(self, n, b, e, record_privacy, m, sigma, eps, save_dir, log_dir, max_comm_rounds, gm, PrivAgent):
+        if not save_dir:
+            save_dir = os.getcwd()
+        if not log_dir:
+            log_dir = os.path.join(os.getenv('TEST_TMPDIR', '/tmp'), 'tensorflow/mnist/logs/fully_connected_feed')
+        if tf.gfile.Exists(log_dir):
+            tf.gfile.DeleteRecursively(log_dir)
+        tf.gfile.MakeDirs(log_dir)
+        self.n = n
+        self.sigma = sigma
+        self.eps = eps
+        self.m = m
+        self.b = b
+        self.e = e
+        self.record_privacy = record_privacy
+        self.save_dir = save_dir
+        self.log_dir = log_dir
+        self.max_comm_rounds = max_comm_rounds
+        self.gm = gm
+        self.PrivAgentName = PrivAgent.Name
