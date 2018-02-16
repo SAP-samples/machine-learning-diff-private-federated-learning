@@ -36,4 +36,4 @@ def create_clients(num, dir):
 if __name__ == '__main__':
     List_of_clients = [100,200,500,1000,2000,5000,10000]
     for j in List_of_clients:
-        create_clients(j, '/Users/d071496/PycharmProjects/DiffPrivate_FedLearning/DATA/clients')
+        create_clients(j, os.getcwd()+'/DATA/clients')
