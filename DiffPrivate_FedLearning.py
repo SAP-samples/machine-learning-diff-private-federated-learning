@@ -13,7 +13,7 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
                                                    label_placeholder, privacy_agent=None, b=10, e=4,
                                                    record_privacy=True, m=0, sigma=0, eps=8, save_dir=None,
                                                    log_dir=None, max_comm_rounds=3000, gm=True,
-                                                   saver_func=create_save_dir):
+                                                   saver_func=create_save_dir, save_params=False):
 
     """
     This function will simulate a federated learning setting and enable differential privacy tracking. It will detect
@@ -65,6 +65,7 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
     :param gm:                  Whether to use a Gaussian Mechanism or not.
     :param saver_func:          A function that specifies where and how to save progress: Note that the usual tensorflow
                                 tracking will not work
+    :param save_params:         save all weights_throughout training.
 
     :return:
 
@@ -276,5 +277,8 @@ def run_differentially_private_federated_averaging(loss, train_op, eval_correct,
 
         # PRINT the progress and stage of affairs.
         print(' - Epsilon-Delta Privacy:' + str([FLAGS.eps, delta]))
+
+        if save_params:
+            weights_accountant.save_params(save_dir)
 
     return [], [], []
