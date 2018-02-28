@@ -76,6 +76,11 @@ class WeightsAccountant:
         self.num_weights = len(self.Weights)
         self.round = real_round
 
+    def save_params(self,save_dir):
+        filehandler = open(save_dir + '/Wweights_accountant_round_'+self.round + '.pkl', "wb")
+        pickle.dump(self, filehandler)
+        filehandler.close()
+
     def allocate(self, sess):
 
         self.Weights = [np.concatenate((self.Weights[i], np.expand_dims(sess.run(tf.trainable_variables()[i]), -1)), -1)
@@ -145,7 +150,6 @@ class WeightsAccountant:
                 # I.e. we have computed a complete model before and can reuse the deltas from that time.
                 delta = Computed_deltas[self.round]
         return New_model, delta
-
 
 def create_save_dir(FLAGS):
     '''

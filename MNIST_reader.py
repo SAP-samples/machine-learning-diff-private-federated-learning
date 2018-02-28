@@ -19,6 +19,8 @@ def read(dataset = "training", path = "."):
     else:
         raise ValueError, "dataset must be 'testing' or 'training'"
 
+    print(fname_lbl)
+
     # Load everything in some numpy arrays
     with open(fname_lbl, 'rb') as flbl:
         magic, num = struct.unpack(">II", flbl.read(8))
@@ -36,10 +38,10 @@ def read(dataset = "training", path = "."):
     return img, lbl
 
 
-def get_data():
+def get_data(d):
     # load the data
-    x_train, y_train = read('training', os.getcwd() + '/MNIST_original')
-    x_test, y_test = read('testing', os.getcwd() + '/MNIST_original')
+    x_train, y_train = read('training', d + '/MNIST_original')
+    x_test, y_test = read('testing', d + '/MNIST_original')
 
     # create validation set
     x_vali = list(x_train[50000:].astype(float))
@@ -63,6 +65,6 @@ def get_data():
 
 class Data:
     def __init__(self, save_dir, n):
-        raw_directory = save_dir + '/DATA/'
-        self.client_set = pickle.load(open(raw_directory + 'clients/' + str(n) + '_clients.pkl', 'rb'))
-        self.sorted_x_train, self.sorted_y_train, self.x_vali, self.y_vali, self.x_test, self.y_test = get_data()
+        raw_directory = save_dir + '/DATA'
+        self.client_set = pickle.load(open(raw_directory + '/clients/' + str(n) + '_clients.pkl', 'rb'))
+        self.sorted_x_train, self.sorted_y_train, self.x_vali, self.y_vali, self.x_test, self.y_test = get_data(save_dir)
