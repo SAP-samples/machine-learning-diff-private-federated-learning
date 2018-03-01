@@ -2,8 +2,8 @@
 
 Introduction:
 ============
-Federated Learning is a privacy preserving decentralized learning protocol introduced my Google. Multiple clients jointly learn a model without data centralization. Centralization is pushed from data space to parameter space: https://research.google.com/pubs/pub44822.html
-Differential privacy in deep learning is concerned with preserving privacy of individual data points: https://arxiv.org/abs/1607.00133
+Federated Learning is a privacy preserving decentralized learning protocol introduced my Google. Multiple clients jointly learn a model without data centralization. Centralization is pushed from data space to parameter space: https://research.google.com/pubs/pub44822.html.
+Differential privacy in deep learning is concerned with preserving privacy of individual data points: https://arxiv.org/abs/1607.00133.
 In this work we combine the notion of both by making federated learning differentially private. We focus on preserving privacy for the entire data set of a client. For more information, please refer to: https://arxiv.org/abs/1712.07557
 
 This code simulates a federated setting and enables federated learning with differential privacy. 
