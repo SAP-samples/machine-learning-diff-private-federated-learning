@@ -5,7 +5,7 @@ import os
 def create_clients(num, dir):
 
     '''
-    This function creates clients that hold non-iid data. (it actually just creates indices that point to data.
+    This function creates clients that hold non-iid MNIST data accroding to the experiments in https://research.google.com/pubs/pub44822.html. (it actually just creates indices that point to data.
     but the way these indices are grouped, they create a non-iid client.)
     :param num: Number of clients
     :param dir: where to store
