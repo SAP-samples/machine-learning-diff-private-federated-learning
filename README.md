@@ -1,5 +1,44 @@
-Simulating differenitally private federated learning using tensorflow. 
-Using the privacy accountant from https://github.com/tensorflow/models/tree/master/research/differential_privacy
+# Differentially Private Federated Learning: A client-level perspective
 
-Download the directory DiffPrivate_FedLearning. If using macOS, simply run: 'bash RUNME.sh'
-to download the MNIST data-sets, create clients and getting startet. 
+Introduction:
+============
+Federated Learning is a privacy preserving decentralized learning protocol introduced my Google. Multiple clients jointly learn a model without data centralization. Centralization is pushed from data space to parameter space: https://research.google.com/pubs/pub44822.html
+Differential privacy in deep learning is concerned with preserving privacy of individual data points: https://arxiv.org/abs/1607.00133
+In this work we combine the notion of both by making federated learning differentially private. We focus on preserving privacy for the entire data set of a client. For more information, please refer to: https://arxiv.org/abs/1712.07557
+
+Installation
+============
+1- If not already done, install Tensorflow
+
+2- Downlad the directory this README is part of 
+
+3- If using macOS, simply run: 
+```bash
+bash RUNME.sh
+```
+to download the MNIST data-sets, create clients and getting started. For more information on the individual functions, please refer to their doc strings.  
+
+How to Cite
+===========
+If you use this code or the pretrained models in your research,
+please cite:
+
+```
+@ARTICLE{2017arXiv171207557G,
+   author = {{Geyer}, R.~C. and {Klein}, T. and {Nabi}, M.},
+    title = "{Differentially Private Federated Learning: A Client Level Perspective}",
+  journal = {ArXiv e-prints},
+archivePrefix = "arXiv",
+   eprint = {1712.07557},
+ primaryClass = "cs.CR",
+ keywords = {Computer Science - Cryptography and Security, Computer Science - Learning, Statistics - Machine Learning},
+     year = 2017,
+    month = dec,
+   adsurl = {http://adsabs.harvard.edu/abs/2017arXiv171207557G},
+  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+```
+
+Reference(s)
+===========
+[1] R. Girshick. Fast R-CNN. arXiv:1504.08083, 2015.
