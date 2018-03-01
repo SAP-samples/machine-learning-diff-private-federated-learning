@@ -43,5 +43,6 @@ archivePrefix = "arXiv",
 
 Reference(s)
 ===========
-[1] H. Brendan McMahan et al., Communication-Efficient Learning of Deep Networks from Decentralized Data, 2017, http://arxiv.org/abs/1602.05629 \n
-[2] Martin Abadi et al., Deep Learning with Differential Privacy, 2016, https://arxiv.org/abs/1607.00133
+[1] H. Brendan McMahan et al., Communication-Efficient Learning of Deep Networks from Decentralized Data, 2017, http://arxiv.org/abs/1602.05629.
+
+[2] Martin Abadi et al., Deep Learning with Differential Privacy, 2016, https://arxiv.org/abs/1607.00133.
