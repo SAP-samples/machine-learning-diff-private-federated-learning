@@ -33,7 +33,7 @@ def sample(N, b,e,m, sigma, eps, save_dir, log_dir):
                                                            save_dir=save_dir, log_dir=log_dir)
 
 def main(_):
-    sample(N=FLAGS.N, b=FLAGS.b, e=FLAGS.e,m=FLAGS.m, sigma=FLAGS.sigma, eps=FLAGS.eps, save_dir=None, log_dir=FLAGS.log_dir)
+    sample(N=FLAGS.N, b=FLAGS.b, e=FLAGS.e,m=FLAGS.m, sigma=FLAGS.sigma, eps=FLAGS.eps, save_dir=FLAGS.save_dir, log_dir=FLAGS.log_dir)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -78,12 +78,6 @@ if __name__ == '__main__':
         type=int,
         default=4,
         help='Epochs per client'
-    )
-    parser.add_argument(
-        '--save_dir',
-        type=str,
-        default=os.getcwd(),
-        help='Directory.'
     )
     parser.add_argument(
         '--log_dir',
