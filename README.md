@@ -27,6 +27,16 @@ bash RUNME.sh
 ```
 to download the MNIST data-sets (link)[http://yann.lecun.com/exdb/mnist/], create clients and getting started. For more information on the individual functions, please refer to their doc strings.  
 
+Known Issues
+============
+No issues known
+
+
+How to obtain support
+=====================
+Please email the authors for any questions regarding the publication and this code. Note that this project is provided "as-is" and any bug reports are not guaranteed to be fixed.
+
+
 How to Cite
 ===========
 If you use this code or the pretrained models in your research,
