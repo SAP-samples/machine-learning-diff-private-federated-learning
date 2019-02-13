@@ -30,7 +30,7 @@ No issues known
 
 
 ## How to obtain support
-Please email the authors for any questions regarding the publication and this code.  Note that this project is provided "as-is" and any bug reports are not guaranteed to be fixed.
+This project is provided "as-is" and any bug reports are not guaranteed to be fixed.
 
 
 ## Citations
