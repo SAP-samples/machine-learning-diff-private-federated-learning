@@ -1,4 +1,4 @@
-# Differentially Private Federated Learning: A client-level perspective
+# Differentially Private Federated Learning: A Client-level Perspective
 
 ## Description:
 Federated Learning is a privacy preserving decentralized learning protocol introduced by Google. Multiple clients jointly learn a model without data centralization. Centralization is pushed from data space to parameter space: https://research.google.com/pubs/pub44822.html [1].
