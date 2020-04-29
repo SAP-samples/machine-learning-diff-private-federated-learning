@@ -15,7 +15,7 @@ Note that the privacy agent is not completely set up yet (especially for more th
 
 ## Download and Installation
 1. Install Tensorflow 1.4.1
-2  [Download the files as a ZIP archive](archive/master.zip), or you can [clone the repository](https://help.github.com/articles/cloning-a-repository/) to your local hard drive.
+2  [Download the files as a ZIP archive](https://github.com/SAP-samples/machine-learning-diff-private-federated-learning.git), or you can [clone the repository](https://help.github.com/articles/cloning-a-repository/) to your local hard drive.
 
 3. Change to the directory of the download, If using macOS, simply run: 
     ```bash
