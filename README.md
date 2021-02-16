@@ -1,5 +1,5 @@
 # Differentially Private Federated Learning: A Client-level Perspective
-
+[![REUSE status](https://api.reuse.software/badge/github.com/SAP-samples/machine-learning-diff-private-federated-learning)](https://api.reuse.software/info/github.com/SAP-samples/machine-learning-diff-private-federated-learning)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-red.svg)](#python) [![PyPI](https://badge.fury.io/py/tensorflow.svg)](https://badge.fury.io/py/tensorflow) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Description:
